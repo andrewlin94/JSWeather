@@ -4,22 +4,14 @@
   <script type="text/javascript">
   var apikey = "4d59e65a82617e3bbc45a3870fc05ada";
   var apiurl = "https://api.openweathermap.org/data/2.5/weather?"
-  $.getJSON('C:\\Users\\linej\\OneDrive\\WebDev', function(json) {
-    var arr = [];
-    for (let name in json) {
-      if (json.hasOwnProperty(name)) {
-        let item = json[name];
-        arr.push({
-          name: item.name,
-          country: item.country
-        });
-      }
-    }
-  });
-  function getWeather() {
-    let location = "zip=" + document.getElementById("zipcode").value + "," + document.getElementById("countrycode").value; 
+  var cityList = [];
+  getCityList(cityList);
+ 
+  function getWeather() { 
+    // let location = "zip=" + document.getElementById("zipcode").value + "," + document.getElementById("countrycode").value;
+    let selectedCity = document.getElementById("citySelect").value[0];
+    let location = "id=" + cityList[selectedCity].id;
     let url =  apiurl + location + "&units=metric" + "&appid=4d59e65a82617e3bbc45a3870fc05ada";
-    console.log(url);
     fetch(url).then(response => {
       return response.json();
     }).then(data => {
@@ -34,14 +26,41 @@
       document.getElementById("wdir").value = data.wind.deg + String.fromCharCode(176);
     }).catch(err => {
       // Do something for an error here
+      console.log("Invalid Location");
+    });
+  }
+
+  function getCityList(cityList) {
+    $.getJSON('https://raw.githubusercontent.com/andrewlin94/JSWeather/master/city.list.json', function(json) {
+      for (let name in json) {
+        if (json.hasOwnProperty(name)) {
+          let item = json[name];
+          if (item.country == "CA") {
+            cityList.push({
+              name: item.name,
+              country: item.country,
+              id: item.id
+            });
+          }
+        }
+      }
+      var select = document.getElementById("citySelect");
+      for (let i = 0; i < cityList.length; ++i) {
+        var opt = i + " " + cityList[i].name + ", " + cityList[i].country;
+        var el = document.createElement("option");
+        el.textContent = opt;
+        el.value = opt;
+        select.appendChild(el);
+      }
     });
   }
   </script>
 </head>
 <html>
   <form id="inputLocation">
-    Zip Code: <input id="zipcode" type="text">
-    Country: <input id="countrycode" type="text">
+    <select id="citySelect">
+      <option>Choose your city</option>
+    </select>
   </form>
   <br>
   <form id="currentWeather">
@@ -53,7 +72,5 @@
     Wind Speed: <output type="number" id="wspeed"></output><br>
     Wind Direction: <output type="number" id="wdir"></output>
   </form>
-  
   <button onclick=getWeather()>Get Weather</button>
-  
 </html>
